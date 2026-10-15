@@ -46,7 +46,7 @@ const plans = [
   {
     id: 'trial',
     name: 'Trial',
-    description: 'A simple way to see if OmniSupport fits your workflow.',
+    description: 'A simple way to see if ZIA fits your workflow.',
     price: 'Free',
     period: 'for 14 days',
     features: ['100 messages per month', '1 project', 'Knowledge base and support inbox'],
@@ -84,7 +84,7 @@ export function LandingScreen() {
             <span className="flex size-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-200">
               <LayoutGrid size={19} aria-hidden />
             </span>
-            OmniSupport
+            ZIA
           </Link>
           <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
             <a href="#features" className="transition hover:text-slate-950">Features</a>
@@ -205,7 +205,7 @@ export function LandingScreen() {
                 Fewer repetitive questions. More time for people.
               </h2>
               <p className="mt-4 leading-7 text-slate-600">
-                OmniSupport helps you make useful answers easier to find and customer conversations easier to manage.
+                ZIA helps you make useful answers easier to find and customer conversations easier to manage.
               </p>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -346,7 +346,7 @@ export function LandingScreen() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-xs text-slate-400 sm:px-8 sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-2 font-semibold text-white">
             <LayoutGrid size={15} className="text-blue-400" aria-hidden />
-            OmniSupport
+            ZIA
           </Link>
           <p>AI-powered support, grounded in what you know.</p>
           <Link to="/login" className="transition hover:text-white">Sign in</Link>

@@ -168,7 +168,7 @@ function ShellFrame({
             className="flex min-w-0 items-center gap-2 font-semibold text-slate-900"
           >
             <LayoutGrid size={18} className="shrink-0 text-blue-600" aria-hidden />
-            <span className="truncate">OmniSupport</span>
+            <span className="truncate">ZIA</span>
           </NavLink>
           <button
             type="button"
