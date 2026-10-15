@@ -1,8 +1,8 @@
 import {useState, type FormEvent} from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useSearchParams} from 'react-router-dom';
 
 import {useAuth} from '../lib/auth';
-import {ApiError} from '../lib/api';
+import {ApiError, api} from '../lib/api';
 import {Button, ErrorNote, Field, inputClass} from '../components/ui';
 
 export function AuthLayout({
@@ -95,6 +95,14 @@ export function LoginScreen() {
 
 export function SignupScreen() {
   const {signUp} = useAuth();
+  const [searchParams] = useSearchParams();
+  const [requestedPlan, setRequestedPlan] = useState<'trial' | 'pro' | 'enterprise'>(() => {
+    const plan = searchParams.get('plan');
+    return plan === 'pro' || plan === 'enterprise' ? plan : 'trial';
+  });
+  const [billingRegion, setBillingRegion] = useState<'india' | 'international'>(() =>
+    navigator.language.toLowerCase().endsWith('-in') ? 'india' : 'international',
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -115,7 +123,28 @@ export function SignupScreen() {
         password,
         name: name || undefined,
         organization_name: organizationName,
+        requested_plan: requestedPlan,
+        ...(requestedPlan !== 'trial'
+          ? {billing_provider: billingRegion === 'india' ? 'razorpay' : 'paypal'}
+          : {}),
       });
+      if (requestedPlan !== 'trial') {
+        try {
+          const checkout = await api<{checkout_url: string}>('/billing/checkout', {
+            method: 'POST',
+          });
+          window.location.assign(checkout.checkout_url);
+          return;
+        } catch (err) {
+          // The organization is created with the paid plan pending, not active.
+          // Settings keeps a retry button if provider credentials are not ready.
+          const checkoutError =
+            err instanceof ApiError ? err.message : 'Could not start the payment checkout.';
+          sessionStorage.setItem('omni.billingCheckoutError', checkoutError);
+          window.location.assign('/projects');
+          return;
+        }
+      }
       window.location.assign('/projects');
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
@@ -126,7 +155,11 @@ export function SignupScreen() {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="You will become the owner of a new organization."
+      subtitle={
+        requestedPlan === 'trial'
+          ? 'You will become the owner of a new organization.'
+          : `Selected plan: ${requestedPlan === 'pro' ? 'Pro' : 'Enterprise'}. Your account stays on Trial until payment is confirmed.`
+      }
       footer={
         <>
           Already have an account?{' '}
@@ -138,6 +171,43 @@ export function SignupScreen() {
     >
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <ErrorNote message={error.message} issues={error.issues} />}
+        <Field label="Plan" htmlFor="signup-plan">
+          <select
+            id="signup-plan"
+            className={inputClass}
+            value={requestedPlan}
+            onChange={(event) =>
+              setRequestedPlan(event.target.value as 'trial' | 'pro' | 'enterprise')
+            }
+          >
+            <option value="trial">Trial — free for 14 days</option>
+            <option value="pro">Pro — ₹999 / $19 per month</option>
+            <option value="enterprise">Enterprise — ₹4,999 / $99 per month</option>
+          </select>
+        </Field>
+        {requestedPlan !== 'trial' && (
+          <Field
+            label="Billing country"
+            htmlFor="billing-region"
+            hint={
+              billingRegion === 'india'
+                ? 'You will check out securely with Razorpay in INR.'
+                : 'You will check out securely with PayPal in USD.'
+            }
+          >
+            <select
+              id="billing-region"
+              className={inputClass}
+              value={billingRegion}
+              onChange={(event) =>
+                setBillingRegion(event.target.value as 'india' | 'international')
+              }
+            >
+              <option value="india">India (INR)</option>
+              <option value="international">Other countries (USD)</option>
+            </select>
+          </Field>
+        )}
         <Field label="Work email" htmlFor="signup-email">
           <input
             id="signup-email"

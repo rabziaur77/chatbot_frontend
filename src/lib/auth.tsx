@@ -42,6 +42,8 @@ interface AuthValue {
     password: string;
     name?: string;
     organization_name: string;
+    requested_plan: 'trial' | 'pro' | 'enterprise';
+    billing_provider?: 'razorpay' | 'paypal';
   }) => Promise<void>;
   signOut: () => Promise<void>;
   selectOrg: (id: string) => void;
@@ -161,6 +163,8 @@ export function AuthProvider({children}: {children: ReactNode}) {
       password: string;
       name?: string;
       organization_name: string;
+      requested_plan: 'trial' | 'pro' | 'enterprise';
+      billing_provider?: 'razorpay' | 'paypal';
     }) => {
       applyAuth(await apiSignup(payload));
     },

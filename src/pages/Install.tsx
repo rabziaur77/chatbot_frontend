@@ -7,11 +7,11 @@
  * strings never reach a page through markup the customer pasted.
  */
 
-import {useEffect, useState} from 'react';
-import {useParams} from 'react-router-dom';
-import {Check, Copy, KeyRound, RotateCw, Trash2} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Check, Copy, KeyRound, RotateCw, Trash2 } from 'lucide-react';
 
-import {ApiError} from '../lib/api';
+import { ApiError } from '../lib/api';
 import {
   useAddDomain,
   useDomains,
@@ -59,7 +59,7 @@ function useFreshKey(
 
   const store = (nextKey: string, name: string) => {
     if (storageKey) {
-      sessionStorage.setItem(storageKey, JSON.stringify({name, key: nextKey}));
+      sessionStorage.setItem(storageKey, JSON.stringify({ name, key: nextKey }));
     }
     setKey(nextKey);
   };
@@ -73,7 +73,7 @@ function useFreshKey(
   return [key, store, dismiss];
 }
 
-function CopyButton({value, label}: {value: string; label: string}) {
+function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
@@ -96,7 +96,7 @@ function CopyButton({value, label}: {value: string; label: string}) {
 }
 
 export function InstallScreen() {
-  const {projectId} = useParams();
+  const { projectId } = useParams();
   const project = useProject(projectId ?? null);
   const domains = useDomains(projectId ?? null);
   const addDomain = useAddDomain(projectId ?? null);
@@ -204,19 +204,21 @@ export function InstallScreen() {
               htmlFor="domain-host"
               hint="Host only. The scheme and any path are stripped for you."
             >
-              <input
-                id="domain-host"
-                required
-                placeholder="www.example.com"
-                className={inputClass}
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <input
+                  id="domain-host"
+                  required
+                  placeholder="www.example.com"
+                  className={inputClass}
+                  value={host}
+                  onChange={(e) => setHost(e.target.value)}
+                />
+                <Button type="submit" busy={addDomain.isPending}>
+                  Add
+                </Button>
+              </div>
             </Field>
           </div>
-          <Button type="submit" busy={addDomain.isPending}>
-            Add
-          </Button>
         </form>
         {error && (
           <div className="mt-3">

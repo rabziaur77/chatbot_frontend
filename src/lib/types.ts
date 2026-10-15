@@ -31,6 +31,8 @@ export interface OrgSummary {
   slug: string;
   role: Role;
   plan: Plan;
+  pending_plan: Plan | null;
+  billing_provider: 'razorpay' | 'paypal' | null;
 }
 
 export interface MeResponse {
