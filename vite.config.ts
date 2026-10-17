@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 import {fileURLToPath} from 'url';
 import {defineConfig} from 'vite';
 
+const backendTarget = 'https://89-116-21-168.sslip.io';
+const backendPath = '/zia';
+
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
@@ -15,10 +18,16 @@ export default defineConfig(() => {
       port: 3000,
       host: '0.0.0.0',
       proxy: {
-        '/api': 'http://localhost:8000',
+        '/api': {
+          target: backendTarget,
+          changeOrigin: true,
+          rewrite: (path) => `${backendPath}${path}`,
+        },
         '/ws': {
-          target: 'ws://localhost:8000',
+          target: backendTarget.replace(/^https:/, 'wss:'),
           ws: true,
+          changeOrigin: true,
+          rewrite: (path) => `${backendPath}${path}`,
         },
       },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

@@ -14,15 +14,15 @@ npm run dev
 ```
 
 The dev server listens on `0.0.0.0:3000` and proxies the two backend transports
-to `localhost:8000`:
+to `https://89-116-21-168.sslip.io/zia`:
 
 | Path | Proxied to |
 | --- | --- |
-| `/api` | `http://localhost:8000` |
-| `/ws` | `ws://localhost:8000` |
+| `/api` | `https://89-116-21-168.sslip.io/zia/api` |
+| `/ws` | `wss://89-116-21-168.sslip.io/zia/ws` |
 
-Start the backend on port 8000 first, otherwise every request fails and the
-login page appears to hang.
+The proxy preserves the existing client paths while adding the `/zia` backend
+prefix.
 
 ## Build
 
