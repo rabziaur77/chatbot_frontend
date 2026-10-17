@@ -41,7 +41,7 @@ export function LoginScreen() {
     setError(null);
     try {
       await signIn(email, password);
-      window.location.assign('/projects');
+      window.location.assign(`${import.meta.env.BASE_URL}projects`);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
       setBusy(false);
@@ -141,11 +141,11 @@ export function SignupScreen() {
           const checkoutError =
             err instanceof ApiError ? err.message : 'Could not start the payment checkout.';
           sessionStorage.setItem('omni.billingCheckoutError', checkoutError);
-          window.location.assign('/projects');
+          window.location.assign(`${import.meta.env.BASE_URL}projects`);
           return;
         }
       }
-      window.location.assign('/projects');
+      window.location.assign(`${import.meta.env.BASE_URL}projects`);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
       setBusy(false);

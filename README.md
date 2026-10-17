@@ -24,6 +24,12 @@ to `https://89-116-21-168.sslip.io/zia`:
 The proxy preserves the existing client paths while adding the `/zia` backend
 prefix.
 
+## GitHub Pages
+
+The app is built for `https://rabziaur77.github.io/chatbot_frontend/` using the
+`/chatbot_frontend/` base path for assets, client-side routes, and in-app
+redirects.
+
 ## Build
 
 ```bash

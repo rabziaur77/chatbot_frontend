@@ -101,7 +101,7 @@ export function ProjectsScreen() {
         JSON.stringify({name: created.name, key: created.public_key}),
       );
       setName('');
-      window.location.assign(`/p/${created.id}/install`);
+      window.location.assign(`${import.meta.env.BASE_URL}p/${created.id}/install`);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
     }

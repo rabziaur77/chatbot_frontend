@@ -8,6 +8,7 @@ const backendPath = '/zia';
 
 export default defineConfig(() => {
   return {
+    base: '/chatbot_frontend/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

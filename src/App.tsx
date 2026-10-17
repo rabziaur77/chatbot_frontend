@@ -294,7 +294,7 @@ function ProjectShell() {
                 aria-label="Active project"
                 value={projectId ?? ''}
                 onChange={(e) => {
-                  window.location.assign(`/p/${e.target.value}/install`);
+                  window.location.assign(`${import.meta.env.BASE_URL}p/${e.target.value}/install`);
                 }}
                 className={`${selectClass} mt-1`}
               >
