@@ -32,7 +32,8 @@ const REFRESH_MARGIN_MS = 60_000;
  * moves exactly these lines. The backend mounts its aggregate router here and
  * the OpenAPI surface follows it.
  */
-export const API_PREFIX = '/api/v1';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+export const API_PREFIX = `${API_BASE_URL}/api/v1`;
 
 export class ApiError extends Error {
   readonly status: number;

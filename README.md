@@ -28,7 +28,10 @@ prefix.
 
 The app is built for `https://rabziaur77.github.io/chatbot_frontend/` using the
 `/chatbot_frontend/` base path for assets, client-side routes, and in-app
-redirects.
+redirects. The Pages workflow sends API requests directly to
+`https://89-116-21-168.sslip.io/zia`; set the repository Actions variable
+`VITE_API_BASE_URL` to override that backend base URL. The backend must allow
+credentialed CORS requests from `https://rabziaur77.github.io`.
 
 ## Build
 
