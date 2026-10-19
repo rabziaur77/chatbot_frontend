@@ -82,7 +82,7 @@
     }
   }
 
-  var apiOrigin =
+  var apiBaseUrl =
     attr('data-api-url') ||
     (globalCfg.apiUrl ? String(globalCfg.apiUrl) : '') ||
     scriptOrigin() ||
@@ -152,15 +152,14 @@
 
   function wsEndpoint() {
     if (wsOverride) return wsOverride;
-    var base;
+    var url;
     try {
-      base = new URL(apiOrigin, window.location.href);
+      url = new URL('ws/chat', apiBaseUrl.replace(/\/+$/, '') + '/');
     } catch (e) {
-      warn('bad api url, falling back to current origin', apiOrigin);
-      base = new URL(window.location.origin);
+      warn('bad api url, falling back to current origin', apiBaseUrl);
+      url = new URL('ws/chat', window.location.origin + '/');
     }
-    var scheme = base.protocol === 'https:' ? 'wss:' : 'ws:';
-    var url = scheme + '//' + base.host + '/ws/chat';
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     // The project key is not in the query string; it is offered as a subprotocol
     // in connect(). This query carries only the visitor id, which is a label and
     // not a credential, and which a browser has no other way to send -- the
@@ -172,14 +171,14 @@
     // transcript. It authorizes nothing, and it is generated here rather than
     // derived from anything identifying.
     var visitor = visitorId();
-    if (visitor) url += '?visitorId=' + encodeURIComponent(visitor);
-    return url;
+    if (visitor) url.searchParams.set('visitorId', visitor);
+    return url.toString();
   }
 
   function configEndpoint() {
     return new URL(
-      '/api/v1/public/widget-config/' + encodeURIComponent(projectKey),
-      apiOrigin || window.location.href
+      'api/v1/public/widget-config/' + encodeURIComponent(projectKey),
+      apiBaseUrl.replace(/\/+$/, '') + '/'
     ).toString();
   }
 

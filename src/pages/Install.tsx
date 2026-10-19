@@ -29,7 +29,9 @@ import {
   Spinner,
 } from '../components/ui';
 
-const ORIGIN = window.location.origin;
+const WIDGET_SCRIPT_URL =
+  import.meta.env.VITE_WIDGET_SCRIPT_URL ?? `${window.location.origin}/widget.js`;
+const WIDGET_API_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
  * Keys are only ever returned by create or rotate, so cache the fresh one.
@@ -111,7 +113,9 @@ export function InstallScreen() {
     return <ErrorNote message={project.error instanceof ApiError ? project.error.message : 'Failed to load project'} />;
   }
 
-  const snippet = `<script src="${ORIGIN}/widget.js"\n        data-project-key="${freshKey ?? 'pk_live_...'}" async defer></script>`;
+  const snippet = `<script src="${WIDGET_SCRIPT_URL}"${
+    WIDGET_API_URL ? `\n        data-api-url="${WIDGET_API_URL}"` : ''
+  }\n        data-project-key="${freshKey ?? 'pk_live_...'}" async defer></script>`;
 
   async function onAddDomain(event: React.FormEvent) {
     event.preventDefault();

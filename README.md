@@ -61,6 +61,10 @@ browser sends the httpOnly refresh cookie on every call. No API base URL or API
 key is configured in the client; the backend resolves the caller from the access
 token and refresh cookie.
 
-The embeddable widget script is served by the backend at `/widget.js`, not from
-this project, and it reads its own configuration at runtime from
-`/api/v1/public/widget-config/{project_key}`.
+The Pages build publishes `public/widget.js` at
+`https://rabziaur77.github.io/chatbot_frontend/widget.js`. The install snippet
+uses `VITE_WIDGET_SCRIPT_URL` for that script URL and passes `VITE_API_BASE_URL`
+as `data-api-url`, because the widget and API can be hosted at different URLs.
+Set either value as a GitHub Actions variable to override the production
+defaults. The widget reads its public configuration at runtime from
+`/api/v1/public/widget-config/{project_key}` relative to the API base URL.
