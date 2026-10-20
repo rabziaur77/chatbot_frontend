@@ -6,11 +6,11 @@
  * status column would read "pending" forever and the screen would look broken.
  */
 
-import {useRef, useState} from 'react';
-import {useParams} from 'react-router-dom';
-import {Link2, RefreshCw, Trash2} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Link2, RefreshCw, Trash2 } from 'lucide-react';
 
-import {ApiError} from '../lib/api';
+import { ApiError } from '../lib/api';
 import {
   uploadDocument,
   useAddUrlDocument,
@@ -32,7 +32,7 @@ import {
 const ACCEPT = '.pdf,.docx,.txt,.md,.markdown';
 
 export function KnowledgeScreen() {
-  const {projectId} = useParams();
+  const { projectId } = useParams();
   const documents = useDocuments(projectId ?? null);
   const addUrl = useAddUrlDocument(projectId ?? null);
   const remove = useDeleteDocument(projectId ?? null);
@@ -63,7 +63,7 @@ export function KnowledgeScreen() {
     event.preventDefault();
     setError(null);
     try {
-      await addUrl.mutateAsync({url});
+      await addUrl.mutateAsync({ url });
       setUrl('');
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
@@ -78,7 +78,7 @@ export function KnowledgeScreen() {
    * silently failed.
    */
   async function run(
-    mutation: {mutateAsync: (id: string) => Promise<unknown>},
+    mutation: { mutateAsync: (id: string) => Promise<unknown> },
     documentId: string,
   ) {
     setError(null);
@@ -118,21 +118,23 @@ export function KnowledgeScreen() {
                 htmlFor="doc-url"
                 hint="The page is fetched and split server-side. Private addresses are rejected."
               >
-                <input
-                  id="doc-url"
-                  required
-                  type="url"
-                  placeholder="https://example.com/docs/refunds"
-                  className={inputClass}
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
+                <div className="flex gap-2">
+                  <input
+                    id="doc-url"
+                    required
+                    type="url"
+                    placeholder="https://example.com/docs/refunds"
+                    className={inputClass}
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                  <Button type="submit" busy={addUrl.isPending}>
+                    <Link2 size={15} aria-hidden />
+                    Add
+                  </Button>
+                </div>
               </Field>
             </div>
-            <Button type="submit" busy={addUrl.isPending}>
-              <Link2 size={15} aria-hidden />
-              Add
-            </Button>
           </form>
 
           {error && <ErrorNote message={error.message} issues={error.issues} />}
