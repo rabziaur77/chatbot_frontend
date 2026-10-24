@@ -32,7 +32,11 @@ export interface OrgSummary {
   role: Role;
   plan: Plan;
   pending_plan: Plan | null;
+  pending_plan_months: number | null;
   billing_provider: 'razorpay' | 'paypal' | null;
+  plan_expires_at: string | null;
+  billing_attention_required: boolean;
+  billing_payment_attention_required: boolean;
 }
 
 export interface MeResponse {

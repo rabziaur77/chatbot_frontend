@@ -165,6 +165,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
       organization_name: string;
       requested_plan: 'trial' | 'pro' | 'enterprise';
       billing_provider?: 'razorpay' | 'paypal';
+      requested_months?: 1 | 3 | 6 | 12;
     }) => {
       applyAuth(await apiSignup(payload));
     },

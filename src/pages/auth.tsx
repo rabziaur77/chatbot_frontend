@@ -1,4 +1,4 @@
-import {useState, type FormEvent} from 'react';
+import {useEffect, useState, type FormEvent} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
 
 import {useAuth} from '../lib/auth';
@@ -100,6 +100,7 @@ export function SignupScreen() {
     const plan = searchParams.get('plan');
     return plan === 'pro' || plan === 'enterprise' ? plan : 'trial';
   });
+  const [requestedMonths, setRequestedMonths] = useState<1 | 3 | 6 | 12>(1);
   const [billingRegion, setBillingRegion] = useState<'india' | 'international'>(() =>
     navigator.language.toLowerCase().endsWith('-in') ? 'india' : 'international',
   );
@@ -109,9 +110,43 @@ export function SignupScreen() {
   const [organizationName, setOrganizationName] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
+  const [priceQuote, setPriceQuote] = useState<{amount_minor: number; currency: string} | null>(
+    null,
+  );
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   // Mirrors the server-side constraint so the user is told before submitting.
   const passwordTooShort = password.length > 0 && password.length < 10;
+
+  useEffect(() => {
+    if (requestedPlan === 'trial') {
+      setPriceQuote(null);
+      setQuoteError(null);
+      return;
+    }
+    let current = true;
+    setPriceQuote(null);
+    setQuoteError(null);
+    void api<{amount_minor: number; currency: string}>('/billing/quote', {
+      authenticated: false,
+      query: {
+        plan: requestedPlan,
+        provider: billingRegion === 'india' ? 'razorpay' : 'paypal',
+        months: requestedMonths,
+      },
+    })
+      .then((quote) => {
+        if (current) setPriceQuote(quote);
+      })
+      .catch((err: unknown) => {
+        if (current) {
+          setQuoteError(err instanceof ApiError ? err.message : 'Unable to load the current price.');
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [requestedPlan, requestedMonths, billingRegion]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -125,7 +160,10 @@ export function SignupScreen() {
         organization_name: organizationName,
         requested_plan: requestedPlan,
         ...(requestedPlan !== 'trial'
-          ? {billing_provider: billingRegion === 'india' ? 'razorpay' : 'paypal'}
+          ? {
+              billing_provider: billingRegion === 'india' ? 'razorpay' : 'paypal',
+              requested_months: requestedMonths,
+            }
           : {}),
       });
       if (requestedPlan !== 'trial') {
@@ -158,7 +196,7 @@ export function SignupScreen() {
       subtitle={
         requestedPlan === 'trial'
           ? 'You will become the owner of a new organization.'
-          : `Selected plan: ${requestedPlan === 'pro' ? 'Pro' : 'Enterprise'}. Your account stays on Trial until payment is confirmed.`
+          : `Selected plan: ${requestedPlan === 'pro' ? 'Pro' : 'Enterprise'} for ${requestedMonths} month${requestedMonths === 1 ? '' : 's'}. Access starts after payment is confirmed.`
       }
       footer={
         <>
@@ -181,18 +219,42 @@ export function SignupScreen() {
             }
           >
             <option value="trial">Trial — free for 14 days</option>
-            <option value="pro">Pro — ₹999 / $19 per month</option>
-            <option value="enterprise">Enterprise — ₹4,999 / $99 per month</option>
+            <option value="pro">Pro</option>
+            <option value="enterprise">Enterprise</option>
           </select>
         </Field>
+        {requestedPlan !== 'trial' && (
+          <Field label="Purchase duration" htmlFor="signup-months">
+            <select
+              id="signup-months"
+              className={inputClass}
+              value={requestedMonths}
+              onChange={(event) =>
+                setRequestedMonths(Number(event.target.value) as 1 | 3 | 6 | 12)
+              }
+            >
+              <option value={1}>1 month</option>
+              <option value={3}>3 months</option>
+              <option value={6}>6 months</option>
+              <option value={12}>12 months</option>
+            </select>
+          </Field>
+        )}
         {requestedPlan !== 'trial' && (
           <Field
             label="Billing country"
             htmlFor="billing-region"
             hint={
-              billingRegion === 'india'
-                ? 'You will check out securely with Razorpay in INR.'
-                : 'You will check out securely with PayPal in USD.'
+              priceQuote
+                ? `One-time total: ${new Intl.NumberFormat(undefined, {
+                    style: 'currency',
+                    currency: priceQuote.currency,
+                  }).format(priceQuote.amount_minor / 100)} through ${
+                    billingRegion === 'india' ? 'Razorpay' : 'PayPal'
+                  }.`
+                : quoteError
+                  ? quoteError
+                  : 'Calculating the server price…'
             }
           >
             <select

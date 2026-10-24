@@ -13,7 +13,10 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from 'lucide-react';
+import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
+
+import {api} from '../lib/api';
 
 const features = [
   {
@@ -57,8 +60,8 @@ const plans = [
     id: 'pro',
     name: 'Pro',
     description: 'More room to support growing teams and products.',
-    price: '₹999 / $19',
-    period: 'per month · India / other countries · 10,000 messages',
+    price: null,
+    period: 'per month · one-time purchase for 1, 3, 6, or 12 months · 10,000 messages',
     features: ['Up to 10 projects', 'Remove the widget watermark', 'Analytics and team tools'],
     action: 'Create an account',
     featured: true,
@@ -67,8 +70,8 @@ const plans = [
     id: 'enterprise',
     name: 'Enterprise',
     description: 'Flexible capacity for larger support operations.',
-    price: '₹4,999 / $99',
-    period: 'per month · India / other countries · unlimited messages',
+    price: null,
+    period: 'per month · one-time purchase for 1, 3, 6, or 12 months · unlimited messages',
     features: ['Unlimited projects', 'Remove the widget watermark', 'Built for larger teams'],
     action: 'Create an account',
     featured: false,
@@ -76,6 +79,51 @@ const plans = [
 ];
 
 export function LandingScreen() {
+  const [planPrices, setPlanPrices] = useState<Record<string, string | null>>({
+    pro: null,
+    enterprise: null,
+  });
+
+  useEffect(() => {
+    let current = true;
+    const requests = (['pro', 'enterprise'] as const).flatMap((plan) =>
+      (['razorpay', 'paypal'] as const).map(async (provider) => {
+        try {
+          const quote = await api<{amount_minor: number; currency: string}>('/billing/quote', {
+            authenticated: false,
+            query: {plan, provider, months: 1},
+          });
+          return {
+            plan,
+            value: new Intl.NumberFormat(provider === 'razorpay' ? 'en-IN' : 'en-US', {
+              style: 'currency',
+              currency: quote.currency,
+              maximumFractionDigits: 0,
+            }).format(quote.amount_minor / 100),
+          };
+        } catch {
+          return {plan, value: null};
+        }
+      }),
+    );
+    void Promise.all(requests).then((quotes) => {
+      if (!current) return;
+      const grouped = new Map<string, string[]>();
+      for (const quote of quotes) {
+        if (quote.value) grouped.set(quote.plan, [...(grouped.get(quote.plan) ?? []), quote.value]);
+      }
+      const proPrices = grouped.get('pro') ?? [];
+      const enterprisePrices = grouped.get('enterprise') ?? [];
+      setPlanPrices({
+        pro: proPrices.length === 2 ? proPrices.join(' / ') : null,
+        enterprise: enterprisePrices.length === 2 ? enterprisePrices.join(' / ') : null,
+      });
+    });
+    return () => {
+      current = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen overflow-hidden bg-white text-slate-900">
       <header className="relative z-10 border-b border-slate-200/80 bg-white/90">
@@ -290,7 +338,9 @@ export function LandingScreen() {
                     {plan.description}
                   </p>
                   <p className={`mt-6 text-2xl font-semibold tracking-tight ${plan.featured ? 'text-slate-950' : 'text-white'}`}>
-                    {plan.price}
+                    {plan.price ??
+                      planPrices[plan.id] ??
+                      'Current price unavailable — shown before payment'}
                   </p>
                   <p className={`mt-1 text-xs ${plan.featured ? 'text-slate-500' : 'text-slate-400'}`}>
                     {plan.period}
@@ -317,7 +367,7 @@ export function LandingScreen() {
               ))}
             </div>
             <p className="mt-8 text-center text-xs leading-5 text-slate-400">
-              Paid plan prices are editable launch prices. India is billed in INR through Razorpay; other countries are billed in USD through PayPal. Plan limits shown are based on the current product tiers.
+              Choose a plan and duration, then pay once. There are no automatic renewals for new purchases. India checkout uses Razorpay in INR; other countries use PayPal in USD, with guest card checkout where eligible. Existing subscriptions are unchanged. Plan limits shown are based on the current product tiers.
             </p>
           </div>
         </section>

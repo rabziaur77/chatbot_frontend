@@ -304,6 +304,7 @@ export async function signup(payload: {
   organization_name: string;
   requested_plan: 'trial' | 'pro' | 'enterprise';
   billing_provider?: 'razorpay' | 'paypal';
+  requested_months?: 1 | 3 | 6 | 12;
 }): Promise<AuthResponse> {
   const data = await api<AuthResponse>('/auth/signup', {
     method: 'POST',

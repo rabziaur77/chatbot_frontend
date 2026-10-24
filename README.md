@@ -8,21 +8,28 @@ configuration.
 
 **Prerequisite:** Node.js
 
+The Vite development server requires `QA_API_PROXY_BASE_URL` in the ignored
+`frontend/.env.development.local` file. Set it to the explicitly selected QA
+backend base URL (for example, `http://127.0.0.1:8000` for the local QA app).
+The `/api` and `/ws` development proxies use only this setting and fail startup
+if it is missing or malformed. Production builds continue to use the separately
+configured `VITE_API_BASE_URL` and are not affected by the development proxy.
+
 ```bash
 npm install
 npm run dev
 ```
 
 The dev server listens on `0.0.0.0:3000` and proxies the two backend transports
-to `https://89-116-21-168.sslip.io/zia`:
+to `QA_API_PROXY_BASE_URL`:
 
 | Path | Proxied to |
 | --- | --- |
-| `/api` | `https://89-116-21-168.sslip.io/zia/api` |
-| `/ws` | `wss://89-116-21-168.sslip.io/zia/ws` |
+| `/api` | `{QA_API_PROXY_BASE_URL path}/api` |
+| `/ws` | `{QA_API_PROXY_BASE_URL path}/ws` |
 
-The proxy preserves the existing client paths while adding the `/zia` backend
-prefix.
+The proxy preserves the client paths and adds the configured target's path
+prefix, if any.
 
 ## GitHub Pages
 
