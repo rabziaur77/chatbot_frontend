@@ -50,7 +50,7 @@ export default defineConfig(({command, mode}) => {
   }
 
   return {
-    base: '/chatbot_frontend/',
+    base: '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

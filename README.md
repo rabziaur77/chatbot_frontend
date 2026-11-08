@@ -33,8 +33,7 @@ prefix, if any.
 
 ## GitHub Pages
 
-The app is built for `https://rabziaur77.github.io/chatbot_frontend/` using the
-`/chatbot_frontend/` base path for assets, client-side routes, and in-app
+The app is built for `https://bot.honorpactgroup.com/` base path for assets, client-side routes, and in-app
 redirects. The Pages workflow sends API requests directly to
 `https://89-116-21-168.sslip.io/zia`; set the repository Actions variable
 `VITE_API_BASE_URL` to override that backend base URL. The backend must allow
@@ -69,7 +68,7 @@ key is configured in the client; the backend resolves the caller from the access
 token and refresh cookie.
 
 The Pages build publishes `public/widget.js` at
-`https://rabziaur77.github.io/chatbot_frontend/widget.js`. The install snippet
+`https://bot.honorpactgroup.com/widget.js`. The install snippet
 uses `VITE_WIDGET_SCRIPT_URL` for that script URL and passes `VITE_API_BASE_URL`
 as `data-api-url`, because the widget and API can be hosted at different URLs.
 Set either value as a GitHub Actions variable to override the production
