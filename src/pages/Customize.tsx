@@ -16,7 +16,7 @@ import {useParams} from 'react-router-dom';
 
 import {ApiError} from '../lib/api';
 import {useProject, useUpdateProject} from '../lib/queries';
-import {Button, Card, ErrorNote, Field, inputClass, Spinner} from '../components/ui';
+import {Button, Card, ErrorNote, Field, inputClass, RetryableError, Skeleton} from '../components/ui';
 
 interface WidgetSettings {
   bot_name: string;
@@ -68,11 +68,33 @@ export function CustomizeScreen() {
     if (project.data) setSettings(parse(project.data.widget_config));
   }, [project.data]);
 
-  if (project.isPending) return <Spinner />;
+  if (project.isPending) {
+    return (
+      <div aria-busy="true" className="space-y-5">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <Skeleton className="h-4 w-36" />
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {[0, 1, 2, 3, 4, 5].map((field) => (
+              <div key={field} className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="mt-4 h-56 w-full rounded-lg" />
+        </section>
+      </div>
+    );
+  }
   if (project.isError || !project.data) {
     return (
-      <ErrorNote
+      <RetryableError
         message={project.error instanceof ApiError ? project.error.message : 'Failed to load project'}
+        onRetry={() => void project.refetch()}
+        busy={project.isFetching}
       />
     );
   }

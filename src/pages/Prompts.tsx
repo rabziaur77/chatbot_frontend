@@ -21,7 +21,8 @@ import {
   ErrorNote,
   Field,
   inputClass,
-  Spinner,
+  RetryableError,
+  Skeleton,
 } from '../components/ui';
 
 const TONES = [
@@ -53,11 +54,24 @@ export function PromptsScreen() {
     setHandoffPhrases(project.data.handoff_phrases ?? '');
   }, [project.data]);
 
-  if (project.isPending) return <Spinner />;
+  if (project.isPending) {
+    return (
+      <div aria-busy="true" className="space-y-5">
+        {[0, 1, 2].map((card) => (
+          <section key={card} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className={`mt-4 w-full rounded-lg ${card === 0 ? 'h-40' : 'h-10'}`} />
+          </section>
+        ))}
+      </div>
+    );
+  }
   if (project.isError || !project.data) {
     return (
-      <ErrorNote
+      <RetryableError
         message={project.error instanceof ApiError ? project.error.message : 'Failed to load project'}
+        onRetry={() => void project.refetch()}
+        busy={project.isFetching}
       />
     );
   }

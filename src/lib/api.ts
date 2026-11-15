@@ -200,10 +200,11 @@ interface RequestOptions {
   /** Attach Authorization + X-Org-Id. Default true. */
   authenticated?: boolean;
   query?: Record<string, string | number | undefined>;
+  signal?: AbortSignal;
 }
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, authenticated = true, query } = options;
+  const { method = 'GET', body, authenticated = true, query, signal } = options;
 
   // Refresh first if we are holding an expired token, rather than sending a
   // request that is guaranteed to 401.
@@ -233,6 +234,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     headers,
     credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
   });
 
   if (res.status === 401 && authenticated) {

@@ -7,10 +7,12 @@
  * really does mean the next message is rejected.
  */
 
+import {Link} from 'react-router-dom';
+
 import {useAuth} from '../lib/auth';
 import {ApiError} from '../lib/api';
 import {useProjects, useUsage} from '../lib/queries';
-import {Card, ErrorNote, Spinner} from '../components/ui';
+import {Card, EmptyState, RetryableError, Skeleton} from '../components/ui';
 
 function Metric({
   label,
@@ -36,85 +38,117 @@ export function AnalyticsScreen() {
   const {activeOrg} = useAuth();
   const usage = useUsage();
   const projects = useProjects();
-
-  if (usage.isPending) return <Spinner />;
-  if (usage.isError || !usage.data) {
-    return (
-      <ErrorNote
-        message={
-          usage.error instanceof ApiError ? usage.error.message : 'Failed to load usage'
-        }
-      />
-    );
-  }
-
-  const {data} = usage;
-  const unlimited = data.messages_limit === null;
-  const percent = data.messages_percent_used ?? 0;
-  const plan = activeOrg?.plan ?? data.plan;
+  const data = usage.data;
+  const unlimited = data?.messages_limit === null;
+  const percent = data?.messages_percent_used ?? 0;
+  const plan = activeOrg?.plan ?? data?.plan ?? '';
 
   return (
     <>
       <Card
         title="This month"
-        description={`Period ${data.period}${activeOrg ? ` · ${activeOrg.name}` : ''}`}
+        description={data ? `Period ${data.period}${activeOrg ? ` · ${activeOrg.name}` : ''}` : undefined}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Metric
-            label="Messages"
-            value={data.messages_used.toLocaleString()}
-            sub={
-              unlimited
-                ? 'Unlimited on your plan'
-                : `of ${data.messages_limit!.toLocaleString()} included`
-            }
+        {usage.isPending ? (
+          <div aria-busy="true" className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="rounded-lg border border-slate-200 px-4 py-3">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="mt-2 h-7 w-16" />
+                  <Skeleton className="mt-2 h-3 w-28" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="h-2 w-full rounded-full" />
+          </div>
+        ) : usage.isError || !data ? (
+          <RetryableError
+            message={usage.error instanceof ApiError ? usage.error.message : 'Failed to load usage'}
+            onRetry={() => void usage.refetch()}
+            busy={usage.isFetching}
           />
-          <Metric
-            label="Conversations"
-            value={data.conversations_started.toLocaleString()}
-            sub="started this period"
-          />
-          <Metric label="Plan" value={plan} sub={`Key rotation and members included`} />
-        </div>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Metric
+                label="Messages"
+                value={data.messages_used.toLocaleString()}
+                sub={
+                  data.messages_limit === null
+                    ? 'Unlimited on your plan'
+                    : `of ${data.messages_limit.toLocaleString()} included`
+                }
+              />
+              <Metric
+                label="Conversations"
+                value={data.conversations_started.toLocaleString()}
+                sub="started this period"
+              />
+              <Metric label="Plan" value={plan} sub="Key rotation and members included" />
+            </div>
 
-        <div className="mt-5">
-          <div className="flex items-baseline justify-between text-xs text-slate-600">
-            <span>Monthly quota</span>
-            <span className="tabular-nums">
-              {unlimited
-                ? 'no limit'
-                : `${data.messages_remaining!.toLocaleString()} remaining`}
-            </span>
-          </div>
-          <div
-            className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200"
-            role="progressbar"
-            aria-valuenow={unlimited ? 0 : percent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Monthly quota used"
-          >
-            <div
-              className={`h-full rounded-full transition-[width] ${
-                percent >= 90 ? 'bg-red-500' : percent >= 70 ? 'bg-amber-500' : 'bg-blue-500'
-              }`}
-              style={{width: `${unlimited ? 0 : percent}%`}}
-            />
-          </div>
-          {!unlimited && percent >= 90 && (
-            <p className="mt-2 text-xs text-red-600">
-              Close to the limit. Messages beyond it are rejected until the period
-              rolls over.
-            </p>
-          )}
-        </div>
+            <div className="mt-5">
+              <div className="flex items-baseline justify-between text-xs text-slate-600">
+                <span>Monthly quota</span>
+                <span className="tabular-nums">
+                  {data.messages_limit === null
+                    ? 'no limit'
+                    : `${data.messages_remaining?.toLocaleString()} remaining`}
+                </span>
+              </div>
+              <div
+                className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200"
+                role="progressbar"
+                aria-valuenow={unlimited ? 0 : percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Monthly quota used"
+              >
+                <div
+                  className={`h-full rounded-full transition-[width] ${
+                    percent >= 90 ? 'bg-red-500' : percent >= 70 ? 'bg-amber-500' : 'bg-blue-500'
+                  }`}
+                  style={{width: `${unlimited ? 0 : percent}%`}}
+                />
+              </div>
+              {!unlimited && percent >= 90 && (
+                <p className="mt-2 text-xs text-red-600">
+                  Close to the limit. Messages beyond it are rejected until the period
+                  rolls over.
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </Card>
 
       <Card title="Projects">
         {projects.isPending ? (
-          <Spinner />
+          <ul aria-busy="true" className="divide-y divide-slate-100">
+            {[0, 1, 2].map((row) => (
+              <li key={row} className="flex items-center justify-between gap-4 py-2.5">
+                <Skeleton className="h-4 w-36 max-w-full" />
+                <Skeleton className="h-3 w-14" />
+              </li>
+            ))}
+          </ul>
+        ) : projects.isError ? (
+          <RetryableError
+            message={projects.error instanceof ApiError ? projects.error.message : 'Failed to load projects'}
+            onRetry={() => void projects.refetch()}
+            busy={projects.isFetching}
+          />
         ) : !projects.data?.length ? (
-          <p className="text-sm text-slate-500">No projects yet.</p>
+          <EmptyState
+            title="No projects yet"
+            description="Create a project to start building your support workspace."
+            action={
+              <Link to="/projects" className="text-sm font-medium text-blue-600 hover:underline">
+                Go to projects
+              </Link>
+            }
+          />
         ) : (
           <ul className="divide-y divide-slate-100">
             {projects.data.map((project) => (

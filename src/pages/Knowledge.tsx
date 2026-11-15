@@ -25,7 +25,8 @@ import {
   ErrorNote,
   Field,
   inputClass,
-  Spinner,
+  RetryableError,
+  Skeleton,
   StatusBadge,
 } from '../components/ui';
 
@@ -154,14 +155,22 @@ export function KnowledgeScreen() {
         }
       >
         {documents.isPending ? (
-          <Spinner />
+          <div aria-label="Loading documents" aria-busy="true" className="space-y-4">
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="flex items-start gap-4 border-b border-slate-100 pb-3 last:border-0">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-48 max-w-full" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
         ) : documents.isError ? (
-          <ErrorNote
-            message={
-              documents.error instanceof ApiError
-                ? documents.error.message
-                : 'Failed to load documents'
-            }
+          <RetryableError
+            message={documents.error instanceof ApiError ? documents.error.message : 'Failed to load documents'}
+            onRetry={() => void documents.refetch()}
+            busy={documents.isFetching}
           />
         ) : !documents.data?.length ? (
           <EmptyState

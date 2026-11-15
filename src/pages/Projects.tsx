@@ -5,7 +5,16 @@ import {FolderPlus} from 'lucide-react';
 import {ApiError, api} from '../lib/api';
 import {useAuth} from '../lib/auth';
 import {useCreateProject, useProjects} from '../lib/queries';
-import {Button, Card, EmptyState, ErrorNote, Field, inputClass, Spinner} from '../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorNote,
+  Field,
+  inputClass,
+  RetryableError,
+  Skeleton,
+} from '../components/ui';
 
 export function ProjectsScreen() {
   const {activeOrg, me, setMe} = useAuth();
@@ -162,12 +171,47 @@ export function ProjectsScreen() {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Projects</h1>
+          <h1 className="text-lg font-semibold text-slate-900">
+            Welcome back{me?.user.name ? `, ${me.user.name}` : ''}
+          </h1>
           <p className="text-sm text-slate-500">
-            Each project has its own widget key, knowledge base and prompts.
+            Your workspace is ready. Manage projects, knowledge and support conversations here.
           </p>
         </div>
       </div>
+
+      {!projects.isError && (
+        <section aria-label="Workspace overview" aria-busy={projects.isPending}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {projects.isPending ? (
+              [0, 1].map((item) => (
+                <div key={item} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="mt-3 h-7 w-16" />
+                  <Skeleton className="mt-2 h-3 w-36 max-w-full" />
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Projects</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+                    {projects.data?.length ?? 0}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">in this organization</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Active projects</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+                    {projects.data?.filter((project) => project.is_active).length ?? 0}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">ready to serve visitors</p>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
 
       {activeOrg && (
         <Card title="Plan">
@@ -331,15 +375,31 @@ export function ProjectsScreen() {
 
       <Card title="Your projects">
         {projects.isPending ? (
-          <Spinner />
+          <ul aria-label="Loading projects" aria-busy="true" className="divide-y divide-slate-100">
+            {[0, 1, 2].map((row) => (
+              <li key={row} className="flex items-center justify-between gap-4 py-3">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-36 max-w-full" />
+                  <Skeleton className="h-3 w-52 max-w-full" />
+                </div>
+                <Skeleton className="h-3 w-12" />
+              </li>
+            ))}
+          </ul>
         ) : projects.isError ? (
-          <ErrorNote
+          <RetryableError
             message={projects.error instanceof ApiError ? projects.error.message : 'Failed to load projects'}
+            onRetry={() => void projects.refetch()}
+            busy={projects.isFetching}
           />
         ) : !projects.data?.length ? (
           <EmptyState
             title="No projects yet"
-            description="Create one above to get an embeddable widget and a place to add documents."
+            description={
+              canCreate
+                ? 'Create one above to get an embeddable widget and a place to add documents.'
+                : 'Ask an organization owner or admin to create a project for this workspace.'
+            }
           />
         ) : (
           <ul className="divide-y divide-slate-100">

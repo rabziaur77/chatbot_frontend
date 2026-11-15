@@ -21,7 +21,8 @@ import {
   ErrorNote,
   Field,
   inputClass,
-  Spinner,
+  RetryableError,
+  Skeleton,
 } from '../components/ui';
 
 export function SettingsScreen() {
@@ -139,7 +140,16 @@ const canAdminister = isOwner || activeOrg.role === 'admin';
 
       <Card title="Plan" description="Usage resets each calendar month.">
         {usage.isPending ? (
-          <Spinner />
+          <div aria-busy="true" className="space-y-2">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-64 max-w-full" />
+          </div>
+        ) : usage.isError ? (
+          <RetryableError
+            message={usage.error instanceof ApiError ? usage.error.message : 'Failed to load usage'}
+            onRetry={() => void usage.refetch()}
+            busy={usage.isFetching}
+          />
         ) : usage.data ? (
           <div className="space-y-1 text-sm text-slate-700">
             <p>
@@ -163,14 +173,22 @@ const canAdminister = isOwner || activeOrg.role === 'admin';
         }
       >
         {members.isPending ? (
-          <Spinner />
+          <ul aria-busy="true" className="divide-y divide-slate-100">
+            {[0, 1, 2].map((row) => (
+              <li key={row} className="flex items-center gap-3 py-2.5">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-3 w-48 max-w-full" />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : members.isError ? (
-          <ErrorNote
-            message={
-              members.error instanceof ApiError
-                ? members.error.message
-                : 'Failed to load members'
-            }
+          <RetryableError
+            message={members.error instanceof ApiError ? members.error.message : 'Failed to load members'}
+            onRetry={() => void members.refetch()}
+            busy={members.isFetching}
           />
         ) : !members.data?.length ? (
           <EmptyState title="No members" />

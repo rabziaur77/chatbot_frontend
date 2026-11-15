@@ -24,7 +24,8 @@ import {
   Card,
   EmptyState,
   ErrorNote,
-  Spinner,
+  RetryableError,
+  Skeleton,
   StatusBadge,
   inputClass,
 } from '../components/ui';
@@ -106,14 +107,20 @@ export function InboxScreen() {
         <div className="grid gap-5 lg:grid-cols-[20rem_1fr]">
           <Card title="Conversations">
             {conversations.isPending ? (
-              <Spinner />
+              <ul aria-busy="true" className="space-y-4">
+                {[0, 1, 2].map((row) => (
+                  <li key={row} className="space-y-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-48 max-w-full" />
+                    <Skeleton className="h-3 w-32" />
+                  </li>
+                ))}
+              </ul>
             ) : conversations.isError ? (
-              <ErrorNote
-                message={
-                  conversations.error instanceof ApiError
-                    ? conversations.error.message
-                    : 'Failed to load conversations'
-                }
+              <RetryableError
+                message={conversations.error instanceof ApiError ? conversations.error.message : 'Failed to load conversations'}
+                onRetry={() => void conversations.refetch()}
+                busy={conversations.isFetching}
               />
             ) : !conversations.data?.length ? (
               <EmptyState title="No conversations yet" />
@@ -158,14 +165,21 @@ export function InboxScreen() {
             {!selected ? (
               <EmptyState title="Select a conversation" />
             ) : transcript.isPending ? (
-              <Spinner />
+              <div aria-busy="true" className="space-y-4">
+                <Skeleton className="h-4 w-32" />
+                {[0, 1, 2].map((row) => (
+                  <div key={row} className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-4/5" />
+                  </div>
+                ))}
+              </div>
             ) : transcript.isError ? (
-              <ErrorNote
-                message={
-                  transcript.error instanceof ApiError
-                    ? transcript.error.message
-                    : 'Failed to load transcript'
-                }
+              <RetryableError
+                message={transcript.error instanceof ApiError ? transcript.error.message : 'Failed to load transcript'}
+                onRetry={() => void transcript.refetch()}
+                busy={transcript.isFetching}
               />
             ) : (
               <>
@@ -230,14 +244,19 @@ export function InboxScreen() {
       ) : (
         <Card title="Handoff tickets">
           {tickets.isPending ? (
-            <Spinner />
+            <div aria-busy="true" className="space-y-3">
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="rounded-lg border border-slate-200 p-3.5">
+                  <Skeleton className="h-4 w-48 max-w-full" />
+                  <Skeleton className="mt-2 h-3 w-56 max-w-full" />
+                </div>
+              ))}
+            </div>
           ) : tickets.isError ? (
-            <ErrorNote
-              message={
-                tickets.error instanceof ApiError
-                  ? tickets.error.message
-                  : 'Failed to load tickets'
-              }
+            <RetryableError
+              message={tickets.error instanceof ApiError ? tickets.error.message : 'Failed to load tickets'}
+              onRetry={() => void tickets.refetch()}
+              busy={tickets.isFetching}
             />
           ) : !tickets.data?.length ? (
             <EmptyState

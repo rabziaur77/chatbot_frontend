@@ -39,7 +39,7 @@ import {
 
 import {useActiveProjectId, useAuth} from './lib/auth';
 import {useProjects} from './lib/queries';
-import {Button, Spinner} from './components/ui';
+import {Button, Skeleton} from './components/ui';
 
 import {LoginScreen, SignupScreen} from './pages/auth';
 import {ProjectsScreen} from './pages/Projects';
@@ -67,7 +67,7 @@ type Crumb = {label: string; to?: string};
 
 function RequireAuth({children}: {children: ReactNode}) {
   const {loggedIn, booting} = useAuth();
-  if (booting) return <Spinner label="Restoring session" />;
+  if (booting) return <SessionLoadingScreen />;
   if (!loggedIn) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
@@ -202,6 +202,78 @@ function ShellFrame({
         </main>
       </div>
     </div>
+  );
+}
+
+function SessionLoadingScreen() {
+  return (
+    <ShellFrame
+      breadcrumbs={[{label: 'Workspace'}, {label: 'Projects'}]}
+      sidebar={
+        <>
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-9 w-full rounded-lg" />
+          <nav aria-label="Loading navigation" className="space-y-2 pt-2">
+            {NAV.map(({to}) => (
+              <div key={to} className="flex items-center gap-2.5 rounded-lg px-3 py-2">
+                <Skeleton className="h-4 w-4 shrink-0 rounded" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </nav>
+          <div className="mt-auto space-y-2 border-t border-slate-200 pt-3">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-8 w-full rounded-lg" />
+          </div>
+        </>
+      }
+    >
+      <section
+        aria-busy="true"
+        aria-label="Restoring your dashboard"
+        className="space-y-5"
+      >
+        <span className="sr-only">Restoring your session</span>
+        <header className="space-y-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-7 w-56 max-w-full" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </header>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[0, 1].map((item) => (
+            <div key={item} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="mt-3 h-7 w-16" />
+              <Skeleton className="mt-2 h-3 w-32 max-w-full" />
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]">
+          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 px-5 py-4">
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-4 px-5 py-4">
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40 max-w-full" />
+                    <Skeleton className="h-3 w-56 max-w-full" />
+                  </div>
+                  <Skeleton className="h-7 w-14 rounded-lg" />
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-4 h-3 w-full" />
+            <Skeleton className="mt-2 h-3 w-4/5" />
+            <Skeleton className="mt-5 h-9 w-36 rounded-lg" />
+          </section>
+        </div>
+      </section>
+    </ShellFrame>
   );
 }
 
@@ -382,7 +454,7 @@ function OrgShell({children}: {children: ReactNode}) {
 
 export default function App() {
   const {loggedIn, booting} = useAuth();
-  if (booting) return <Spinner label="Starting" />;
+  if (booting) return <SessionLoadingScreen />;
 
   return (
     <Routes>

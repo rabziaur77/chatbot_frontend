@@ -40,14 +40,14 @@ function orgKey() {
 export function useProjects() {
   return useQuery({
     queryKey: [...orgKey(), 'projects'],
-    queryFn: () => api<ProjectResponse[]>('/projects'),
+    queryFn: ({signal}) => api<ProjectResponse[]>('/projects', {signal}),
   });
 }
 
 export function useProject(projectId: string | null) {
   return useQuery({
     queryKey: ['project', projectId],
-    queryFn: () => api<ProjectResponse>(`/projects/${projectId}`),
+    queryFn: ({signal}) => api<ProjectResponse>(`/projects/${projectId}`, {signal}),
     enabled: Boolean(projectId),
   });
 }
@@ -108,7 +108,7 @@ export function useRotateKey(projectId: string | null) {
 export function useDomains(projectId: string | null) {
   return useQuery({
     queryKey: ['domains', projectId],
-    queryFn: () => api<ProjectDomainResponse[]>(`/projects/${projectId}/domains`),
+    queryFn: ({signal}) => api<ProjectDomainResponse[]>(`/projects/${projectId}/domains`, {signal}),
     enabled: Boolean(projectId),
   });
 }
@@ -141,7 +141,7 @@ export function useRemoveDomain(projectId: string | null) {
 export function useDocuments(projectId: string | null) {
   return useQuery({
     queryKey: ['documents', projectId],
-    queryFn: () => api<DocumentResponse[]>(`/projects/${projectId}/documents`),
+    queryFn: ({signal}) => api<DocumentResponse[]>(`/projects/${projectId}/documents`, {signal}),
     enabled: Boolean(projectId),
     // Documents move from pending to ready in the background, so the badge
     // would otherwise freeze at "pending" until a manual reload.
@@ -233,8 +233,8 @@ export async function uploadDocument(
 export function useConversations(projectId: string | null) {
   return useQuery({
     queryKey: ['conversations', projectId],
-    queryFn: () =>
-      api<ConversationResponse[]>(`/projects/${projectId}/conversations`),
+    queryFn: ({signal}) =>
+      api<ConversationResponse[]>(`/projects/${projectId}/conversations`, {signal}),
     enabled: Boolean(projectId),
     // The inbox is meant to be live.
     refetchInterval: 10_000,
@@ -244,8 +244,8 @@ export function useConversations(projectId: string | null) {
 export function useConversation(projectId: string | null, conversationId: string | null) {
   return useQuery({
     queryKey: ['conversation', projectId, conversationId],
-    queryFn: () =>
-      api<ConversationDetail>(`/projects/${projectId}/conversations/${conversationId}`),
+    queryFn: ({signal}) =>
+      api<ConversationDetail>(`/projects/${projectId}/conversations/${conversationId}`, {signal}),
     enabled: Boolean(projectId && conversationId),
   });
 }
@@ -253,7 +253,7 @@ export function useConversation(projectId: string | null, conversationId: string
 export function useTickets(projectId: string | null) {
   return useQuery({
     queryKey: ['tickets', projectId],
-    queryFn: () => api<TicketResponse[]>(`/projects/${projectId}/tickets`),
+    queryFn: ({signal}) => api<TicketResponse[]>(`/projects/${projectId}/tickets`, {signal}),
     enabled: Boolean(projectId),
   });
 }
@@ -275,21 +275,21 @@ export function useUpdateTicket(projectId: string | null) {
 export function useUsage() {
   return useQuery({
     queryKey: [...orgKey(), 'usage'],
-    queryFn: () => api<UsageResponse>('/usage'),
+    queryFn: ({signal}) => api<UsageResponse>('/usage', {signal}),
   });
 }
 
 export function useMembers() {
   return useQuery({
     queryKey: [...orgKey(), 'members'],
-    queryFn: () => api<MemberResponse[]>('/orgs'),
+    queryFn: ({signal}) => api<MemberResponse[]>('/orgs', {signal}),
   });
 }
 
 export function useMe() {
   return useQuery({
     queryKey: [...orgKey(), 'me'],
-    queryFn: () => api<MeResponse>('/auth/me'),
+    queryFn: ({signal}) => api<MeResponse>('/auth/me', {signal}),
   });
 }
 
@@ -303,8 +303,9 @@ export function useMe() {
 export function usePublicWidgetConfig(projectKey: string | null) {
   return useQuery({
     queryKey: ['widget-config', projectKey],
-    queryFn: () => api<WidgetConfigResponse>(`/public/widget-config/${projectKey}`, {
+    queryFn: ({signal}) => api<WidgetConfigResponse>(`/public/widget-config/${projectKey}`, {
       authenticated: false,
+      signal,
     }),
     enabled: Boolean(projectKey),
     retry: false,

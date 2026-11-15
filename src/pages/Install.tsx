@@ -26,7 +26,8 @@ import {
   ErrorNote,
   Field,
   inputClass,
-  Spinner,
+  RetryableError,
+  Skeleton,
 } from '../components/ui';
 
 const WIDGET_SCRIPT_URL =
@@ -108,9 +109,27 @@ export function InstallScreen() {
   const [host, setHost] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
 
-  if (project.isPending) return <Spinner />;
+  if (project.isPending) {
+    return (
+      <div aria-busy="true" className="space-y-5">
+        {[0, 1, 2].map((item) => (
+          <section key={item} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="mt-4 h-10 w-full" />
+            <Skeleton className="mt-3 h-3 w-3/4" />
+          </section>
+        ))}
+      </div>
+    );
+  }
   if (project.isError || !project.data) {
-    return <ErrorNote message={project.error instanceof ApiError ? project.error.message : 'Failed to load project'} />;
+    return (
+      <RetryableError
+        message={project.error instanceof ApiError ? project.error.message : 'Failed to load project'}
+        onRetry={() => void project.refetch()}
+        busy={project.isFetching}
+      />
+    );
   }
 
   const snippet = `<script src="${WIDGET_SCRIPT_URL}"${
@@ -232,7 +251,23 @@ export function InstallScreen() {
 
         <div className="mt-4">
           {domains.isPending ? (
-            <Spinner />
+            <div aria-busy="true" className="space-y-3">
+              {[0, 1].map((row) => (
+                <div key={row} className="flex items-center justify-between border-b border-slate-100 py-2.5">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                </div>
+              ))}
+            </div>
+          ) : domains.isError ? (
+            <RetryableError
+              message={domains.error instanceof ApiError ? domains.error.message : 'Failed to load domains'}
+              onRetry={() => void domains.refetch()}
+              busy={domains.isFetching}
+            />
           ) : !domains.data?.length ? (
             <EmptyState
               title="No domains yet"

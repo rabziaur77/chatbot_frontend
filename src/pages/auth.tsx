@@ -1,5 +1,5 @@
 import {useEffect, useState, type FormEvent} from 'react';
-import {Link, useSearchParams} from 'react-router-dom';
+import {Link, useNavigate, useSearchParams} from 'react-router-dom';
 
 import {useAuth} from '../lib/auth';
 import {ApiError, api} from '../lib/api';
@@ -30,6 +30,7 @@ export function AuthLayout({
 
 export function LoginScreen() {
   const {signIn} = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
@@ -41,7 +42,7 @@ export function LoginScreen() {
     setError(null);
     try {
       await signIn(email, password);
-      window.location.assign(`${import.meta.env.BASE_URL}projects`);
+      navigate('/projects', {replace: true});
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
       setBusy(false);
@@ -95,6 +96,7 @@ export function LoginScreen() {
 
 export function SignupScreen() {
   const {signUp} = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [requestedPlan, setRequestedPlan] = useState<'trial' | 'pro' | 'enterprise'>(() => {
     const plan = searchParams.get('plan');
@@ -179,11 +181,11 @@ export function SignupScreen() {
           const checkoutError =
             err instanceof ApiError ? err.message : 'Could not start the payment checkout.';
           sessionStorage.setItem('omni.billingCheckoutError', checkoutError);
-          window.location.assign(`${import.meta.env.BASE_URL}projects`);
+          navigate('/projects', {replace: true});
           return;
         }
       }
-      window.location.assign(`${import.meta.env.BASE_URL}projects`);
+      navigate('/projects', {replace: true});
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
       setBusy(false);

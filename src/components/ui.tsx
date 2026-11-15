@@ -118,6 +118,34 @@ export function ErrorNote({message, issues}: {message: string; issues?: string[]
   );
 }
 
+export function RetryableError({
+  message,
+  onRetry,
+  busy = false,
+}: {
+  message: string;
+  onRetry: () => void;
+  busy?: boolean;
+}) {
+  return (
+    <div className="space-y-3">
+      <ErrorNote message={message} />
+      <Button variant="secondary" onClick={onRetry} busy={busy}>
+        Retry
+      </Button>
+    </div>
+  );
+}
+
+export function Skeleton({className = ''}: {className?: string}) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`animate-pulse rounded-md bg-slate-200 motion-reduce:animate-none ${className}`}
+    />
+  );
+}
+
 export function EmptyState({
   title,
   description,
